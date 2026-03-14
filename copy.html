@@ -338,10 +338,7 @@ var LEVELS=[
 ];
 
 var PLATFORMS={
-  meta:{label:'Meta Ads',icon:'📘',limits:{hook:125,headline:40,corpo_anuncio:500,cta:30,variacao_curta:125}},
-  google:{label:'Google Ads',icon:'🔍',limits:{hook:30,headline:30,corpo_anuncio:90,cta:15,variacao_curta:30}},
-  tiktok:{label:'TikTok',icon:'🎵',limits:{hook:100,headline:40,corpo_anuncio:150,cta:20,variacao_curta:100}},
-  youtube:{label:'YouTube',icon:'▶️',limits:{hook:100,headline:50,corpo_anuncio:300,cta:15,variacao_curta:100}}
+  meta:{label:'Meta Ads',icon:'📘',limits:{hook:125,headline:40,corpo_anuncio:500,cta:30,variacao_curta:125}}
 };
 
 var TONE_LABELS=['Empático e acolhedor','Próximo e informal','Equilibrado e confiante','Direto e objetivo','Agressivo e urgente'];
@@ -763,7 +760,56 @@ function showSuggestion(pageData){
   });
 }
 
-// ── BUILD CONTEXT ──
+// ── AUTO FILL ADVANCED ──
+function autoFillAdvanced(pageData){
+  // Persona
+  var personaEl=document.getElementById('personaInput');
+  if(personaEl&&!personaEl.value.trim()&&pageData.publico){
+    var persona=pageData.publico||'';
+    if(pageData.dor_principal) persona+='. Desejo principal: '+pageData.dor_principal;
+    if(pageData.copy_resumo) persona+='. Contexto: '+pageData.copy_resumo.slice(0,200);
+    personaEl.value=persona;
+    personaEl.style.borderColor='#7c6aff55';
+    personaEl.title='Preenchido automaticamente pela análise da página';
+  }
+  // Dores e objeções
+  var doresEl=document.getElementById('doresInput');
+  if(doresEl&&!doresEl.value.trim()&&pageData.objecoes_quebradas&&pageData.objecoes_quebradas.length){
+    doresEl.value=pageData.objecoes_quebradas.join('\n');
+    doresEl.style.borderColor='#7c6aff55';
+    doresEl.title='Preenchido automaticamente pela análise da página';
+  }
+  // Nicho — detecta automaticamente
+  if(pageData.dor_principal||pageData.copy_resumo){
+    var txt=((pageData.dor_principal||'')+(pageData.copy_resumo||'')).toLowerCase();
+    var nichoMap={
+      saude:['saude','saúde','medico','médico','doenca','doença','remedio','remédio','tratamento','dor','ansiedade','depressao','depressão'],
+      financas:['dinheiro','renda','financeiro','financeira','finanças','financas','investimento','lucro','faturar','ganhar','divida','dívida','emprego','riqueza'],
+      emagrecimento:['emagrecer','emagrecimento','peso','dieta','barriga','gordo','gorda','emagrec','corpo','saudavel','saudável','academia','treino'],
+      relacionamento:['relacionamento','amor','casamento','familia','família','parceiro','parceira','namoro','divorc','solidao','solidão','conquista'],
+      negocios:['negocio','negócio','empresa','empreender','empreendedor','faturamento','cliente','venda','marketing','produto','servico','serviço'],
+      produtividade:['produtividade','tempo','foco','organiz','rotina','habito','hábito','meta','objetivo','disciplina','procrastin'],
+      espiritualidade:['espiritual','meditacao','meditação','energia','universo','deus','fé','fe','manifest','abundancia','abundância','paz'],
+      educacao:['aprender','aprendizagem','estudo','curso','aula','ensino','educação','educacao','concurso','vestibular','idioma']
+    };
+    var detected='';
+    var maxCount=0;
+    Object.keys(nichoMap).forEach(function(n){
+      var count=nichoMap[n].filter(function(kw){return txt.indexOf(kw)>=0;}).length;
+      if(count>maxCount){maxCount=count;detected=n;}
+    });
+    if(detected&&maxCount>0){
+      document.querySelectorAll('.niche-pill').forEach(function(p){p.classList.remove('active');});
+      var pill=document.querySelector('.niche-pill[data-niche="'+detected+'"]');
+      if(pill){pill.classList.add('active');selectedNiche=detected;}
+    }
+  }
+  // Abre o painel avançado automaticamente para mostrar o preenchimento
+  var advPanel=document.getElementById('advPanel');
+  if(advPanel&&!advPanel.classList.contains('show')){
+    toggleAdv();
+  }
+}
 function buildContext(pageData){
   var persona=getPersona();
   var dores=getDores();
@@ -897,6 +943,8 @@ async function generateAll(){
   try{
     pageData=await analyzeStructure(pageContent,url);
     showAnalysisCard(pageData);
+    // Auto-fill persona, dores e nicho
+    autoFillAdvanced(pageData);
     setStep(1,'done','✓');
   }catch(e){
     setStep(1,'err','✗');
