@@ -859,9 +859,15 @@ async function generateLevel(i,pageData){
   var prompt='Copywriter especialista em infoprodutos e trafego pago.\n\n'
     +'DADOS REAIS DA PAGINA:\n'+JSON.stringify(pageData).slice(0,2000)
     +ctx+platInfo+'\n\n'
-    +'NIVEL '+l.n+' ('+l.label+'). Audiencia: '+l.retarget+'\n'+l.instrucoes+'\n\n'
-    +'Use os depoimentos, CTAs, preco e garantia reais encontrados na pagina.\n'
-    +'Aplique a persona e o tom de voz instruidos.\n\n'
+    +'NIVEL '+l.n+' ('+l.label+'). Audiencia: '+l.retarget+'\n\n'
+    +'INSTRUCOES DO NIVEL:\n'+l.instrucoes+'\n\n'
+    +l.psicologia+'\n\n'
+    +'REGRAS CRITICAS:\n'
+    +'- Aplique TODOS os gatilhos psicologicos listados acima de forma natural e fluida\n'
+    +'- Nao mencione os nomes dos gatilhos explicitamente — incorpore-os na copy\n'
+    +'- Use os dados REAIS da pagina (preco, depoimentos, garantia, bonus) para tornar os gatilhos concretos e crediveis\n'
+    +'- Cada elemento da copy deve servir a pelo menos um gatilho psicologico\n'
+    +'- O leitor deve sentir a persuasao sem perceber que esta sendo persuadido\n\n'
     +'Retorne APENAS JSON sem markdown:\n'
     +'{"hook":"","headline":"","corpo_anuncio":"","cta":"","variacao_curta":"","avaliacao_score":78,"avaliacao_feedback":""}';
   try{var txt=await callGroq(prompt,900);results[i]={data:parseJSON(txt)};}
@@ -873,7 +879,17 @@ async function generateFinal(pageData){
   finalResult={loading:true};updateFinal();
   var ld='';LEVELS.forEach(function(l,i){var r=results[i];if(r.data)ld+='\nN'+l.n+' '+l.label+': Hook='+r.data.hook+' | HL='+r.data.headline+' | Score='+r.data.avaliacao_score;});
   var ctx=buildContext(pageData);
-  var prompt='Copywriter alta conversao.\nDADOS:\n'+JSON.stringify(pageData).slice(0,1200)+'\nCAMPANHAS:\n'+ld+ctx+'\n\nCrie campanha sintetizada de maxima conversao unindo o melhor dos 5 niveis.\nRetorne APENAS JSON sem markdown:\n{"hook":"","headline":"","corpo_anuncio":"5-7 frases","cta":"","variacao_curta":"","pontos_fortes":"","pontos_fracos":"","avaliacao":"","score":88}';
+  var prompt='Copywriter alta conversao — especialista em psicologia da persuasao.\nDADOS:\n'+JSON.stringify(pageData).slice(0,1200)+'\nCAMPANHAS:\n'+ld+ctx
+    +'\n\nGATILHOS PSICOLOGICOS PARA A CAMPANHA FINAL (combine o melhor de todos os niveis):\n'
+    +'1. ANCORAGEM — preco original vs atual\n'
+    +'2. IDENTIDADE ASPIRACIONAL — quem a pessoa se torna\n'
+    +'3. AVERSAO A PERDA — custo concreto de nao agir\n'
+    +'4. PROVA SOCIAL ESPECIFICA — numeros exatos\n'
+    +'5. INIMIGO COMUM — antagonista externo\n'
+    +'6. ESPECIFICIDADE COMO CREDIBILIDADE — detalhes que provam verdade\n'
+    +'7. ESCASSEZ REAL — razao concreta e crivel para agir agora\n\n'
+    +'Incorpore todos de forma natural. O leitor deve sentir urgencia e desejo sem perceber os mecanismos.\n\n'
+    +'Retorne APENAS JSON sem markdown:\n{"hook":"","headline":"","corpo_anuncio":"5-7 frases","cta":"","variacao_curta":"","pontos_fortes":"","pontos_fracos":"","avaliacao":"","score":88}';
   try{var txt=await callGroq(prompt,1100);finalResult={data:parseJSON(txt)};}
   catch(e){finalResult={error:'Erro: '+(e.message||'tente novamente')};}
   updateFinal();
