@@ -440,7 +440,13 @@ function updateKeyStatusBar(){var or=getOR(),gr=getGroq();var html='';if(or)html
 
 // ── API ──
 async function callOpenRouter(prompt,max_tokens){
-  var key=getOR();if(!key)throw new Error('Configure sua API Key em ⚙️ API Keys.');
+  var key=_keys.or||lsGet('or_key')||'';
+  if(!key){
+    // ultima tentativa: pegar do campo do modal
+    var el=document.getElementById('modalOR');
+    if(el) key=el.value.trim();
+  }
+  if(!key) throw new Error('Configure sua API Key em ⚙️ API Keys.');
   var models=['meta-llama/llama-3.3-70b-instruct:free','meta-llama/llama-3.1-8b-instruct:free','google/gemini-2.0-flash-exp:free','google/gemma-3-27b-it:free','deepseek/deepseek-r1-distill-llama-70b:free','mistralai/mistral-7b-instruct:free','qwen/qwen2.5-72b-instruct:free'];
   var lastErr='';
   for(var m=0;m<models.length;m++){
@@ -454,7 +460,9 @@ async function callOpenRouter(prompt,max_tokens){
   throw new Error('OpenRouter falhou: '+lastErr);
 }
 async function callGroq(prompt,max_tokens){
-  var key=getGroq();if(!key)return callOpenRouter(prompt,max_tokens);
+  var key=_keys.groq||lsGet('groq_key')||'';
+  if(!key){var el=document.getElementById('modalGroq');if(el)key=el.value.trim();}
+  if(!key) return callOpenRouter(prompt,max_tokens);
   try{
     var res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:max_tokens||800,messages:[{role:'user',content:prompt}]})});
     if(!res.ok)throw new Error('Groq HTTP '+res.status);
