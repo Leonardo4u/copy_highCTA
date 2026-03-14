@@ -1,130 +1,132 @@
 # Gerador de Campanhas - 5 Niveis de Consciencia
 
-Aplicacao web estaticas em HTML, CSS e JavaScript para analisar uma landing page e gerar campanhas com base nos 5 niveis de consciencia do mercado.
+Aplicacao web estatica para analisar landing pages e gerar campanhas com base nos 5 niveis de consciencia do mercado. O projeto combina leitura automatica da pagina, analise estrutural por IA e geracao de copys orientadas por contexto, persona, dores e posicionamento da oferta.
 
-O app le a URL informada, tenta extrair o conteudo com Jina Reader, usa IA via OpenRouter e Groq para estruturar a analise da pagina e monta copys por nivel de consciencia, incluindo historico local e exportacao para PDF.
+## Visao geral
 
-## O que a aplicacao faz
+O usuario informa a URL de uma pagina de vendas e a aplicacao:
 
-- Analisa uma landing page a partir de uma URL.
-- Extrai contexto da oferta, headline, CTAs, prova, objecoes e estrutura da copy.
-- Gera campanhas para os 5 niveis de consciencia.
-- Permite ajustar persona, dores, tom de voz, nicho e concorrentes.
-- Faz fallback entre Groq e OpenRouter.
-- Salva historico no navegador com localStorage.
-- Exporta o resultado em formato de impressao/PDF.
+1. tenta extrair o conteudo da pagina via Jina Reader;
+2. estrutura a oferta com apoio de IA;
+3. gera campanhas para cada nivel de consciencia;
+4. monta uma campanha final consolidada;
+5. salva o resultado no navegador e permite exportacao em PDF.
+
+## Principais recursos
+
+- Analise de landing page a partir de URL.
+- Extracao de headline, subheadline, CTAs, provas, bonus, objecoes e sinais de estrutura comercial.
+- Geracao de copys para os 5 niveis de consciencia.
+- Configuracoes avancadas para persona, dores, concorrentes, nicho e tom de voz.
+- Uso opcional de Groq com fallback automatico para OpenRouter.
+- Historico local com localStorage.
+- Exportacao do resultado em formato de impressao/PDF.
 
 ## Stack
 
-- HTML puro
-- CSS puro
-- JavaScript puro no navegador
-- Jina Reader para leitura de pagina
-- OpenRouter para inferencia
-- Groq como opcional mais rapido, com fallback para OpenRouter
-- Vercel para hospedagem estatica
+- HTML
+- CSS
+- JavaScript no navegador
+- Jina Reader
+- OpenRouter
+- Groq
+- Vercel
 
 ## Estrutura do projeto
 
-- [copy.html](copy.html): aplicacao completa, incluindo interface, estilos e logica.
-- [vercel.json](vercel.json): rewrite da raiz para [copy.html](copy.html) na Vercel.
+- [copy.html](copy.html): interface, estilos e logica da aplicacao em um unico arquivo.
+- [vercel.json](vercel.json): rewrite da rota raiz para [copy.html](copy.html) no deploy.
 - [README.md](README.md): documentacao do projeto.
 
-## Como rodar localmente
+## Como executar localmente
 
-Como o projeto e estatico, voce pode abrir direto no navegador:
+Por ser um projeto estatico, voce pode abrir o arquivo direto no navegador:
 
 ```powershell
 Start-Process .\copy.html
 ```
 
-Ou usar um servidor local no VS Code, por exemplo com Live Server.
+Se preferir, rode com um servidor local, como Live Server no VS Code.
 
 ## Como usar
 
 1. Abra a aplicacao.
 2. Clique em API Keys.
-3. Informe uma chave do OpenRouter.
-4. Opcionalmente informe uma chave do Groq.
-5. Cole a URL da landing page que deseja analisar.
-6. Se quiser, preencha configuracoes avancadas como persona, dores, concorrentes e tom de voz.
+3. Configure ao menos uma chave do OpenRouter.
+4. Opcionalmente configure uma chave do Groq.
+5. Cole a URL da landing page.
+6. Ajuste os campos avancados, se quiser refinar o contexto.
 7. Clique em Analisar e Gerar.
-8. Revise as abas dos niveis, a sugestao de nivel e a campanha final.
-9. Exporte em PDF se quiser salvar o resultado.
+8. Revise as campanhas por nivel, a recomendacao principal e a campanha final.
+9. Exporte em PDF, se precisar compartilhar ou arquivar o material.
 
 ## Chaves de API
 
 ### OpenRouter
 
-- Obrigatoria.
-- Usada como provedor principal ou fallback.
-- O app tenta varios modelos gratuitos em sequencia.
+- Obrigatoria para o funcionamento do app.
+- Serve como provedor principal ou fallback.
+- O app tenta diferentes modelos gratuitos em sequencia.
 
 ### Groq
 
 - Opcional.
-- Quando configurada, o app tenta usar Groq primeiro.
-- Se falhar, cai automaticamente para OpenRouter.
+- Quando presente, e usado antes do OpenRouter.
+- Em caso de erro, a aplicacao volta automaticamente para OpenRouter.
 
-## Como funciona internamente
+## Fluxo da aplicacao
 
-Fluxo principal da aplicacao:
+1. O usuario informa a URL da pagina.
+2. O sistema tenta ler o conteudo com Jina Reader.
+3. A IA retorna uma estrutura resumida da oferta.
+4. O app combina esse contexto com persona, dores, tom e concorrentes.
+5. Sao geradas campanhas para os 5 niveis de consciencia.
+6. Uma campanha final e sintetizada a partir dos melhores elementos.
+7. O resultado fica salvo no historico local.
 
-1. O usuario informa a URL.
-2. O app tenta ler o conteudo da pagina via Jina Reader.
-3. A IA extrai dados estruturados da landing page.
-4. O app monta contexto adicional com persona, dores, nicho e concorrentes.
-5. Sao geradas campanhas para cada nivel de consciencia.
-6. O sistema sintetiza uma campanha final.
-7. O resultado e salvo no historico local.
+## Persistencia
 
-## Persistencia de dados
-
-Os dados ficam salvos no localStorage do navegador, incluindo:
+Os dados sao armazenados no localStorage do navegador. Isso inclui:
 
 - chave OpenRouter
 - chave Groq
 - historico de analises
-- estados auxiliares da interface
+- preferencias da interface
 
-Isso significa que os dados ficam no navegador atual, nao em um banco de dados.
+Nao existe banco de dados nem sincronizacao entre dispositivos.
 
 ## Deploy na Vercel
 
-Este projeto pode ser publicado como site estatico.
+O projeto pode ser publicado como site estatico sem etapa de build.
 
-### Arquivo importante
+Como a entrada principal esta em [copy.html](copy.html), o arquivo [vercel.json](vercel.json) faz o rewrite da rota / para esse arquivo.
 
-Como a pagina principal do projeto e [copy.html](copy.html) e nao index.html, o arquivo [vercel.json](vercel.json) faz o rewrite da rota raiz para esse arquivo.
-
-### Passo a passo
+Passo a passo:
 
 1. Envie o projeto para um repositorio no GitHub.
 2. Importe o repositorio na Vercel.
 3. Mantenha a configuracao como projeto estatico.
-4. Faça o deploy.
+4. Publique o deploy.
 
-Se necessario, o deploy tambem pode funcionar sem build command e sem output directory customizado, porque o projeto e apenas um conjunto de arquivos estaticos.
+## Limitacoes atuais
 
-## Limitacoes importantes
+- As chaves de API ficam no front-end, o que e aceitavel para uso pessoal, mas nao ideal para uma aplicacao publica.
+- Se o Jina Reader nao conseguir ler a pagina, a analise perde qualidade.
+- A aplicacao depende de respostas de IA em JSON valido.
+- O historico existe apenas no navegador em que foi gerado.
 
-- As chaves de API sao usadas no front-end. Isso e pratico para uso pessoal, mas nao e a abordagem ideal para um produto publico multiusuario.
-- Se Jina Reader nao conseguir ler a pagina, a analise pode ficar menos precisa.
-- O app depende da resposta dos provedores de IA retornarem JSON valido.
-- O historico fica apenas no navegador do usuario.
+## Recomendacao para evolucao
 
-## Recomendacao para producao
-
-Se voce quiser transformar isso em uma aplicacao publica de verdade, o proximo passo correto e mover as chamadas para OpenRouter e Groq para um backend ou serverless function. Assim voce protege as chaves e controla melhor custos, limites e abuso.
+Para transformar o projeto em uma aplicacao publica, o passo correto e mover as chamadas para OpenRouter e Groq para um backend ou funcao serverless. Isso protege as chaves, reduz risco de abuso e melhora o controle de custo e observabilidade.
 
 ## Melhorias futuras
 
-- Backend para proteger chaves
-- Banco de dados para historico persistente
-- Sistema de autenticacao
-- Templates extras por canal de midia
-- Comparativo entre versoes de copy
-- Logs e monitoramento de falhas de API
+- Backend para proteger credenciais
+- Persistencia em banco de dados
+- Autenticacao de usuarios
+- Templates adicionais por canal de trafego
+- Comparacao entre variacoes de copy
+- Telemetria e logs de falhas de API
 
 ## Licenca
 
