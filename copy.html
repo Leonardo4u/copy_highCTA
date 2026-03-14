@@ -419,9 +419,18 @@ function getCompetitors(){return[document.getElementById('comp1').value.trim(),d
 function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}};
 function lsDel(k){try{localStorage.removeItem(k);}catch(e){}}
-function getOR(){return lsGet('or_key')||'';}
-function getGroq(){return lsGet('groq_key')||'';}
-
+function getOR(){
+  var v='';
+  try{v=localStorage.getItem('or_key')||'';}catch(e){}
+  if(!v){var el=document.getElementById('modalOR');if(el)v=el.value.trim();}
+  return v;
+}
+function getGroq(){
+  var v='';
+  try{v=localStorage.getItem('groq_key')||'';}catch(e){}
+  if(!v){var el=document.getElementById('modalGroq');if(el)v=el.value.trim();}
+  return v;
+}
 function openSettings(){document.getElementById('modalOR').value=getOR();document.getElementById('modalGroq').value=getGroq();document.getElementById('savedBadge').classList.remove('show');updateApiStatus();document.getElementById('settingsModal').classList.add('show');}
 function closeSettings(){document.getElementById('settingsModal').classList.remove('show');}
 function closeSettingsOutside(e){if(e.target===document.getElementById('settingsModal'))closeSettings();}
