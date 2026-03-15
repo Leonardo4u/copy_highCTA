@@ -457,8 +457,18 @@ function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
 function lsDel(k){try{localStorage.removeItem(k);}catch(e){}}
 
-function getOR(){var v=_keys.or||lsGet('or_key')||'';if(!v){var el=document.getElementById('modalOR');if(el)v=el.value.trim();}return v;}
-function getGroq(){var v=_keys.groq||lsGet('groq_key')||'';if(!v){var el=document.getElementById('modalGroq');if(el)v=el.value.trim();}return v;}
+function getOR(){
+  var v=_keys.or||lsGet('or_key')||'';
+  if(!v){var el=document.getElementById('modalOR');if(el&&el.value.trim())v=el.value.trim();}
+  if(v)_keys.or=v;
+  return v;
+}
+function getGroq(){
+  var v=_keys.groq||lsGet('groq_key')||'';
+  if(!v){var el=document.getElementById('modalGroq');if(el&&el.value.trim())v=el.value.trim();}
+  if(v)_keys.groq=v;
+  return v;
+}
 
 function openSettings(){document.getElementById('modalOR').value=getOR();document.getElementById('modalGroq').value=getGroq();document.getElementById('savedBadge').classList.remove('show');updateApiStatus();document.getElementById('settingsModal').classList.add('show');}
 function closeSettings(){document.getElementById('settingsModal').classList.remove('show');}
@@ -468,7 +478,7 @@ function updateApiStatus(){var or=document.getElementById('modalOR').value.trim(
 function updateKeyStatusBar(){var or=getOR(),gr=getGroq();var h='';if(or)h+='<span class="key-pill ok">✓ OR</span>';else h+='<span class="key-pill err" onclick="openSettings()">✗ API Key</span>';if(gr)h+='<span class="key-pill ok">✓ Groq</span>';document.getElementById('keyStatusBar').innerHTML=h;}
 
 async function callOpenRouter(prompt,max_tokens){
-  var key=_keys.or||lsGet('or_key')||'';if(!key){var el=document.getElementById('modalOR');if(el)key=el.value.trim();}
+  var key=getOR();
   if(!key)throw new Error('Configure sua API Key em ⚙️ API Keys.');
   var models=['meta-llama/llama-3.3-70b-instruct:free','meta-llama/llama-3.1-8b-instruct:free','google/gemini-2.0-flash-exp:free','google/gemma-3-27b-it:free','deepseek/deepseek-r1-distill-llama-70b:free','mistralai/mistral-7b-instruct:free','qwen/qwen2.5-72b-instruct:free'];
   var lastErr='';
@@ -482,7 +492,7 @@ async function callOpenRouter(prompt,max_tokens){
   throw new Error('OpenRouter falhou: '+lastErr);
 }
 async function callGroq(prompt,max_tokens){
-  var key=_keys.groq||lsGet('groq_key')||'';if(!key){var el=document.getElementById('modalGroq');if(el)key=el.value.trim();}
+  var key=getGroq();
   if(!key)return callOpenRouter(prompt,max_tokens);
   try{var res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:max_tokens||800,messages:[{role:'user',content:prompt}]})});
     if(!res.ok)throw new Error('Groq HTTP '+res.status);
