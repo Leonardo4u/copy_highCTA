@@ -747,19 +747,48 @@ async function generateAll(){
 
   setStep(1,'active','⟳');
   var pageData=null;
-  try{pageData=await analyzeStructure(pageContent,url);showAnalysisCard(pageData);autoFillAdvanced(pageData);analyzeEmotions(pageContent).then(function(ed){emotionData=ed;showEmotionBar(ed);});setStep(1,'done','✓');}
-  catch(e){setStep(1,'err','✗');pageData={produto:'',publico:'',headline:'',copy_resumo:pageContent.slice(0,500),ctas:[],num_depoimentos:0,tem_vsl:false,tem_countdown:false,tem_escassez:false,garantia:'',bonus:[],objecoes_quebradas:[],dor_principal:'',nivel_recomendado:2,motivo_nivel:'',score:0,score_feedback:''};}
-  currentPageData=pageData;
-  if(pageData.score)showScore(pageData.score,pageData.score_feedback);
-  showSuggestion(pageData);
+  await Promise.all([
+    (async function(){
+      try{
+        pageData=await analyzeStructure(pageContent,url);
+        showAnalysisCard(pageData);
+        autoFillAdvanced(pageData);
+        currentPageData=pageData;
+        if(pageData.score)showScore(pageData.score,pageData.score_feedback);
+        showSuggestion(pageData);
+        setStep(1,'done','✓');
+      }catch(e){
+        setStep(1,'err','✗');
+        pageData={produto:'',publico:'',headline:'',copy_resumo:pageContent.slice(0,500),ctas:[],num_depoimentos:0,tem_vsl:false,tem_countdown:false,tem_escassez:false,garantia:'',bonus:[],objecoes_quebradas:[],dor_principal:'',nivel_recomendado:2,motivo_nivel:'',score:0,score_feedback:''};
+        currentPageData=pageData;
+        if(pageData.score)showScore(pageData.score,pageData.score_feedback);
+        showSuggestion(pageData);
+      }
+    })(),
+    (async function(){
+      try{emotionData=await analyzeEmotions(pageContent);showEmotionBar(emotionData);}catch(e){}
+    })()
+  ]);
 
+  var competitorPromise=Promise.resolve();
   var comps=getCompetitors();
-  if(comps.length){setStep(2,'active','⟳');document.getElementById('ps2txt').textContent='Analisando '+comps.length+' concorrente(s)...';competitorData=await analyzeCompetitors(comps,pageData.produto||'');setStep(2,'done','✓');}
-  else{setStep(2,'done','—');document.getElementById('ps2txt').textContent='Sem concorrentes — pulado';}
+  if(comps.length){
+    setStep(2,'active','⟳');
+    document.getElementById('ps2txt').textContent='Analisando '+comps.length+' concorrente(s)...';
+    competitorPromise=(async function(){
+      competitorData=await analyzeCompetitors(comps,pageData.produto||'');
+      setStep(2,'done','✓');
+      if(results[0]&&results[0].data)updateContent(0);
+    })();
+  }else{
+    setStep(2,'done','—');
+    document.getElementById('ps2txt').textContent='Sem concorrentes — pulado';
+  }
 
   setStep(3,'active','⟳');
   for(var i=0;i<LEVELS.length;i++){await generateLevel(i,pageData);if(i<LEVELS.length-1)await sleep(500);}
   setStep(3,'done','✓');
+  await competitorPromise;
 
   setStep(4,'active','⟳');
   var ctx=buildContext(pageData);
