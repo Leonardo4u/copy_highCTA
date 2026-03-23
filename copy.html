@@ -445,9 +445,9 @@ function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
 function setStep(i,st,icon){var ps=document.getElementById('ps'+i),pi=document.getElementById('pi'+i);if(!ps)return;ps.className='p-step '+st;if(icon)pi.textContent=icon;}
 function showProgress(){document.getElementById('progressBox').classList.add('show');}
 
-function toggleAdv(){var p=document.getElementById('advPanel'),t=document.getElementById('advToggle'),a=document.getElementById('advArrow');var open=p.classList.toggle('show');t.classList.toggle('open',open);a.textContent=open?'▲':'▼';}
-function updateToneLabel(){document.getElementById('toneLabel').textContent=TONE_LABELS[parseInt(document.getElementById('toneSlider').value)];}
-function toggleNiche(el){var n=el.dataset.niche;document.querySelectorAll('.niche-pill').forEach(function(p){p.classList.remove('active');});selectedNiche=(selectedNiche===n)?'':(n);if(selectedNiche)el.classList.add('active');}
+function toggleAdv(){var p=document.getElementById('advPanel'),t=document.getElementById('advToggle'),a=document.getElementById('advArrow');var open=p.classList.toggle('show');t.classList.toggle('open',open);a.textContent=open?'▲':'▼';lsSet('copy_adv_open',open?'true':'false');}
+function updateToneLabel(){document.getElementById('toneLabel').textContent=TONE_LABELS[parseInt(document.getElementById('toneSlider').value)];lsSet('copy_tom',document.getElementById('toneSlider').value);}
+function toggleNiche(el){var n=el.dataset.niche;document.querySelectorAll('.niche-pill').forEach(function(p){p.classList.remove('active');});selectedNiche=(selectedNiche===n)?'':(n);if(selectedNiche)el.classList.add('active');lsSet('copy_nicho',selectedNiche);}
 function getTonePrompt(){return TONE_PROMPTS[parseInt(document.getElementById('toneSlider').value)];}
 function getPersona(){return(document.getElementById('personaInput').value||'').trim();}
 function getDores(){return(document.getElementById('doresInput').value||'').trim();}
@@ -456,6 +456,12 @@ function getCompetitors(){return[document.getElementById('comp1').value.trim(),d
 function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
 function lsDel(k){try{localStorage.removeItem(k);}catch(e){}}
+
+document.getElementById('personaInput').addEventListener('input',function(){lsSet('copy_persona',this.value);});
+document.getElementById('doresInput').addEventListener('input',function(){lsSet('copy_dores',this.value);});
+document.getElementById('comp1').addEventListener('input',function(){lsSet('copy_comp1',this.value);});
+document.getElementById('comp2').addEventListener('input',function(){lsSet('copy_comp2',this.value);});
+document.getElementById('comp3').addEventListener('input',function(){lsSet('copy_comp3',this.value);});
 
 function getOR(){
   var v=_keys.or||lsGet('or_key')||'';
@@ -778,7 +784,36 @@ async function generateAll(){
   btn.disabled=false;btn.textContent='🚀 Analisar e Gerar';
 }
 
-renderPanels();updateKeyStatusBar();
+renderPanels();
+(function restoreAdvancedFromLS(){
+  var persona=lsGet('copy_persona');
+  var dores=lsGet('copy_dores');
+  var tom=lsGet('copy_tom');
+  var nicho=lsGet('copy_nicho');
+  var comp1=lsGet('copy_comp1');
+  var comp2=lsGet('copy_comp2');
+  var comp3=lsGet('copy_comp3');
+  var advOpen=lsGet('copy_adv_open');
+
+  if(persona!==null)document.getElementById('personaInput').value=persona;
+  if(dores!==null)document.getElementById('doresInput').value=dores;
+  if(comp1!==null)document.getElementById('comp1').value=comp1;
+  if(comp2!==null)document.getElementById('comp2').value=comp2;
+  if(comp3!==null)document.getElementById('comp3').value=comp3;
+
+  if(tom!==null)document.getElementById('toneSlider').value=tom;
+  updateToneLabel();
+
+  selectedNiche=nicho||'';
+  document.querySelectorAll('.niche-pill').forEach(function(p){p.classList.remove('active');});
+  if(selectedNiche){
+    var pill=document.querySelector('.niche-pill[data-niche="'+selectedNiche+'"]');
+    if(pill)pill.classList.add('active');
+  }
+
+  if(advOpen==='true'&&!document.getElementById('advPanel').classList.contains('show'))toggleAdv();
+})();
+updateKeyStatusBar();
 if(!getOR())setTimeout(openSettings,600);
 </script>
 </body>
