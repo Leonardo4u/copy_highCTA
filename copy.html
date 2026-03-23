@@ -705,7 +705,7 @@ async function generateVariantB(i){
 async function generateLevel(i,pageData){
   var l=LEVELS[i];results[i]={loading:true};updateContent(i);
   var ctx=buildContext(pageData);
-  var prompt='Copywriter especialista em infoprodutos, psicologia da persuasao e Meta Ads.\n\nDADOS REAIS DA PAGINA:\n'+JSON.stringify(pageData).slice(0,2000)+ctx+'\nLimites Meta Ads: '+JSON.stringify(LIMITS)+'\n\n'+l.psicologia+'\n\nEXEMPLOS (imite o estilo):\n'+l.exemplos+'\n\nREGRAS: aplique todos os gatilhos de forma natural, use dados reais da pagina, imite o impacto dos exemplos.\n\nRetorne APENAS JSON:\n{"hook":"","headline":"","corpo_anuncio":"","cta":"","variacao_curta":"","avaliacao_score":78,"avaliacao_feedback":""}';
+  var prompt='Copywriter especialista em infoprodutos, psicologia da persuasao e Meta Ads.\n\nDADOS REAIS DA PAGINA:\n'+JSON.stringify(pageData).slice(0,2000)+ctx+'\nLimites Meta Ads: '+JSON.stringify(LIMITS)+'\n\n'+l.psicologia+'\n\nEXEMPLOS (imite o estilo):\n'+l.exemplos+'\n\nREGRAS: aplique todos os gatilhos de forma natural, use dados reais da pagina, imite o impacto dos exemplos.\n\nAUTOAVALIE a copy no mesmo retorno com um checklist psicologico no campo validation.\n\nRetorne APENAS JSON:\n{"hook":"","headline":"","corpo_anuncio":"","cta":"","variacao_curta":"","avaliacao_score":78,"avaliacao_feedback":"","validation":{"gatilhos_ok":[],"gatilhos_fracos":[],"gatilhos_ausentes":[],"legibilidade":{"palavras_por_frase":12,"nivel":"facil","palavras_dificeis":2,"sugestao":""}}}';
   try{var txt=await callGroq(prompt,1000);results[i]={data:parseJSON(txt)};}catch(e){results[i]={error:'Erro: '+(e.message||'tente novamente')};}
   updateContent(i);
 }
@@ -713,8 +713,8 @@ async function generateFinal(pageData){
   finalResult={loading:true};updateFinal();
   var ld='';LEVELS.forEach(function(l,i){var r=results[i];if(r.data)ld+='\nN'+l.n+' '+l.label+': Hook='+r.data.hook+' | HL='+r.data.headline+' | Score='+r.data.avaliacao_score;});
   var ctx=buildContext(pageData);
-  var prompt='Copywriter alta conversao + psicologia da persuasao.\nDADOS:\n'+JSON.stringify(pageData).slice(0,1200)+'\nCAMPANHAS:\n'+ld+ctx+'\n\nGATILHOS FINAIS: Ancoragem + Identidade Aspiracional + Aversao a Perda + Prova Social + Inimigo Comum + Especificidade + Escassez Real\n\nRetorne APENAS JSON:\n{"hook":"","headline":"","corpo_anuncio":"5-7 frases","cta":"","variacao_curta":"","pontos_fortes":"","pontos_fracos":"","avaliacao":"","score":88}';
-  try{var txt=await callGroq(prompt,1100);finalResult={data:parseJSON(txt)};}catch(e){finalResult={error:'Erro: '+(e.message||'tente novamente')};}
+  var prompt='Copywriter alta conversao + psicologia da persuasao.\nDADOS:\n'+JSON.stringify(pageData).slice(0,1200)+'\nCAMPANHAS:\n'+ld+ctx+'\n\nGATILHOS FINAIS: Ancoragem + Identidade Aspiracional + Aversao a Perda + Prova Social + Inimigo Comum + Especificidade + Escassez Real\n\nAUTOAVALIE a copy no mesmo retorno com um checklist psicologico no campo validation.\n\nRetorne APENAS JSON:\n{"hook":"","headline":"","corpo_anuncio":"5-7 frases","cta":"","variacao_curta":"","pontos_fortes":"","pontos_fracos":"","avaliacao":"","score":88,"validation":{"gatilhos_ok":[],"gatilhos_fracos":[],"gatilhos_ausentes":[],"legibilidade":{"palavras_por_frase":12,"nivel":"facil","palavras_dificeis":2,"sugestao":""}}}';
+  try{var txt=await callGroq(prompt,1100),p=parseJSON(txt);finalResult={data:p,validation:p.validation||null};}catch(e){finalResult={error:'Erro: '+(e.message||'tente novamente')};}
   updateFinal();
 }
 
@@ -794,8 +794,6 @@ async function generateAll(){
   var ctx=buildContext(pageData);
   await Promise.all(LEVELS.map(async function(l,i){
     var r=results[i];if(!r.data)return;
-    var copyText=(r.data.hook||'')+' '+(r.data.headline||'')+' '+(r.data.corpo_anuncio||'');
-    validateGatilhos(l.n,copyText).then(function(v){if(v){r.data.validation=v;updateContent(i);}});
     r.loadingFormats=true;updateContent(i);
     try{r.formats=await generateFormats(l.n,l.label,r.data,pageData,ctx);}catch(e){r.formats=null;}
     r.loadingFormats=false;updateContent(i);
@@ -804,7 +802,6 @@ async function generateAll(){
 
   setStep(5,'active','⟳');
   await generateFinal(pageData);
-  if(finalResult.data){var fCopy=(finalResult.data.hook||'')+' '+(finalResult.data.headline||'')+' '+(finalResult.data.corpo_anuncio||'');validateGatilhos(6,fCopy).then(function(v){if(v){finalResult.validation=v;updateFinal();}});}
   buildObjectionMap(pageData,results).then(function(om){showObjectionMap(om);});
   await saveToHistory(url,pageData,results,finalResult);
   setStep(5,'done','✓');
